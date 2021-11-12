@@ -1,6 +1,6 @@
 # InnovationLab Vicenza: Esploratore delle Luci Notturne
 
-**Una web app per l'esplorazione della dinamica dell'inquinamento luminoso, basata sulla piattaforma cloud Google Earth Engine e dati satellitari.**
+**Esplora la dinamica dell'inquinamento luminoso nel vicentino usando la [nostra web app](https://code.earthengine.google.com/), basata sulla piattaforma cloud Google Earth Engine e dati satellitari.** 
 
 ![logo InnovationLab Vicenza](img/logo-innovationlab.png)
 
@@ -15,7 +15,7 @@ Il codice consente di studiare le dinamiche della quantità della luce notturna 
 ## Contatti
 
 - Sito del comune: [VicenzaInnovationLab](https://https://www.comune.vicenza.it/uffici/cms/innovationlabvicenza.php/)
-- Sviluppatore: [Yaroslav Vasyunin](https://www.linkedin.com/in/vasyunin), [Digital Innovation Hub](https://digitalinnovationhubvicenza.it/) di Confartigianato Vicenza
+- Sviluppatore: [Yaroslav Vasyunin](https://www.linkedin.com/in/vasyunin), Digital Innovation Hub di Confartigianato Vicenza ([digitalinnovationhubvicenza.it](https://digitalinnovationhubvicenza.it/))
 
 ## Ringraziamenti
 Lo sviluppatore ringrazia Vasily Lobanov, Centro Earth Observation della RUDN University (Russia), per il prezioso sopporto nello sviluppo della interfaccia grafica della web app.
