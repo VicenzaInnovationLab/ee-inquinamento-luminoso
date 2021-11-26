@@ -36,7 +36,20 @@ Questo repository contiene il codice JavaScript che abbiamo utilizzato per l'ela
 
 ## Come usare la web app
 
-SCREENSHOTS
+1. Quando la web app è aperta (potrebbero volerci alcuni secondi per caricarla), si apre una mappa della provincia di Vicenza, dove la diversa intensità del colore giallo-arancio mostra la radianza di un determinato territorio. Questa mappa mostra le medie per il periodo prescelto (vedi sotto).
+
+2. Dall'elenco a tendina è possibile selezionare un'altra provincia del Veneto.
+
+3. Per impostazione predefinita, l'intervallo di date è impostato dal 1° gennaio 2014 infino a oggi. Puoi cambiarlo. Tuttavia, la data di inizio non può essere precedente al 01/01/2014 a causa della mancanza di dati.
+
+4. Ora la cosa più interessante: ingrandisci la mappa nell'area di tuo interesse e fai un clic sinistro. Nel pannello a destra, apparirà un grafico con una curva gialla, che mostra la dinamica dell'inquinamento luminoso a questo punto per il periodo selezionato. Il grafico mostra anche una trend line rossa (o meglio, una curva di tendenza polinomiale).
+
+5. In alto a destra del grafico c'è un pulsante che consente di espanderlo in una finestra separata. In quella nuova finestra sarà possibile scaricare i dati iniziali del grafico nel formato CSV.
+
+6. Come interpretare questo grafico? Ecco c'è un riferimento:
+   * **Vicenza (VI), 50 nW/(cm²·sr)**. Inquinamento luminoso molto alto. L'intero sfondo del cielo ha una vaga tonalità bianca grigiastra. Forti sorgenti luminose sono evidenti in tutte le direzioni. La Via Lattea è totalmente invisibile o quasi.
+   * **Malo (VI), 20 nW/(cm²·sr)**. Inquinamento luminoso abbastanza alto. La Via Lattea è molto debole o invisibile vicino all'orizzonte e sembra piuttosto sbiadita sopra la testa. Le sorgenti luminose sono evidenti nella maggior parte se non in tutte le direzioni.
+   * **Sasso (VI), 5 nW/(cm²·sr)**. Inquinamento luminoso moderato. Sono visibili solo strutture della Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza buono per gli standard di molte persone.
 
 ## Come usare il codice sorgente
 
@@ -50,6 +63,7 @@ Non appena hai l'account Earth Engine, esplora la sua interfaccia con [questo ma
 - Sviluppatore: [Yaroslav Vasyunin](https://www.linkedin.com/in/vasyunin), Digital Innovation Hub di Confartigianato Vicenza ([digitalinnovationhubvicenza.it](https://digitalinnovationhubvicenza.it/))
 
 ## Ringraziamenti
+
 Lo sviluppatore ringrazia *Vasily Lobanov*, Centro Earth Observation della RUDN University (Russia), per il prezioso sopporto nello sviluppo della interfaccia grafica della web app.
 
 ## Licenza
