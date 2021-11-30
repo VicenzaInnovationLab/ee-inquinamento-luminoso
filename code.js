@@ -54,26 +54,26 @@ var appTitleStyle = {
   color: rosso3
 };
 
-var chartText0 = {
+var graphText0 = {
   color: rosso2,
   fontSize: 14
 };
 
-var chartText1 = {
+var graphText1 = {
   color: rosso2,
   fontSize: 14,
   bold: false,
   italic: false
 };
 
-var chartText2 = {
+var graphText2 = {
   color: blu,
   fontSize: 12,
   bold: false,
   italic: false
 };
 
-var chartText3 = {
+var graphText3 = {
   color: blu,
   fontSize: 11,
   bold: false,
@@ -97,7 +97,7 @@ var gettingStarted = ui.Label({
   style: {stretch: "horizontal", textAlign: "justify"},
 });
 
-var chartInterpTitle = ui.Label({
+var graphInterpTitle = ui.Label({
   value: "Riferimenti per interpretare il grafico",
   style: {fontWeight: "bold"},
 });
@@ -118,7 +118,7 @@ var gi6 = ui.Label(
           Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza \
           buono per gli standard di molte persone.");
 
-var gchartTitle = "Dinamica nel punto cliccato";
+var graphTitle = "Dinamica nel punto cliccato";
 
 var funding = ui.Label({
   value: "Il progetto è parte del Programma Operativo Regionale del Fondo \
@@ -129,23 +129,9 @@ var funding = ui.Label({
   style: aboutStyle
 });
 
-var refTitle = ui.Label({
-  value: "Più informazioni",
-  style: {fontSize: "20px", fontWeight: "bold"}  //, textAlign : 'center', stretch: 'horizontal'},
-});
-
-var refLink1 = ui.Label({
-  value: "• Dati satellitari: VIIRS Stray Light Corrected Nighttime Day/Night Band Composites Version 1",
-  targetUrl: "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG"
-});
-
-var refLink2 = ui.Label({
-  value: "• Codice sorgente e documentazione: GitHub dell'Innovation Lab Vicenza",
-  targetUrl: "https://github.com/VicenzaInnovationLab/ee-inquinamento-luminoso"
-});
-
 // ### OTHER ###
 
+var cloudThreshold = 1;
 var bufRadius = 50;  // meters, in clicked point
 
 // #############################################################################
@@ -199,6 +185,11 @@ var endDateHandler = function (dateRange) {
   updateMap();
 };
 
+var cloudThreshHandler = function (value) {
+  cloudThreshold = value;
+  updateMap();
+};
+
 var updateMap = function () {
   aoi = borders.filter(ee.Filter.eq(nameAttr, aoiName));
   filteredColl = applyFilters(viirsCol);
@@ -216,7 +207,6 @@ var mapClickHandler = function (coords) {
   var clickedPointLayer = ui.Map.Layer(clickedPoint, {color: "pink"}, "punto cliccato");
   Map.layers().set(2, clickedPointLayer);
 
-// chart
 var chart = ui.Chart.image.series({
     imageCollection: maskedColl.select(dataBand),
     region: clickedPoint,
@@ -224,22 +214,22 @@ var chart = ui.Chart.image.series({
     scale: 500,
   }).setSeriesNames(["Radianza"])
     .setOptions({
-      title: gchartTitle,
-      titleTextStyle: chartText1,
+      title: graphTitle,
+      titleTextStyle: graphText1,
       vAxis: {
         title: "Radianza, nW/(cm²·sr)",
-        textStyle: chartText3,
-        titleTextStyle: chartText2,
+        textStyle: graphText3,
+        titleTextStyle: graphText2,
         gridlines: {color: "#3b3b3b"}},
       hAxis: {
         title: "Data",
-        textStyle: chartText3,
-        titleTextStyle: chartText2,
+        textStyle: graphText3,
+        titleTextStyle: graphText2,
         gridlines: {color: "#3b3b3b"},
       },
       curveType: "function",
       colors: ["#eed3a2"],
-      legend: {textStyle: chartText2},
+      legend: {textStyle: graphText2},
       chartArea: {backgroundColor: "#4e4e4e"},
       trendlines: {
         0: {  // add a trend line to the 1st series
@@ -255,6 +245,7 @@ var chart = ui.Chart.image.series({
   chartPanel.widgets().set(0, chart);
 };
 
+
 // #############################################################################
 // ### IMPLEMENTATION ###
 // #############################################################################
@@ -267,12 +258,13 @@ var composite;
 
 var aois = borders.aggregate_array(nameAttr).sort().getInfo();
 
-// adm panel
+// UI
 var provinceSelector = ui.Select({
   items: aois,
   placeholder: "Seleziona un'area",
   value: aoiName,
   onChange: aoiNameHandler,
+  // disabled,
   style: {stretch: "horizontal"}
 });
 
@@ -286,9 +278,9 @@ var admPanel = ui.Panel({
   layout: ui.Panel.Layout.flow('horizontal')
 });
 
-// date panel
 var startDateSelector = ui.DateSlider({
   start: startDate,
+  // end,
   value: startDate,
   period: 1,
   onChange: startDateHandler,
@@ -297,6 +289,7 @@ var startDateSelector = ui.DateSlider({
 
 var endDateSelector = ui.DateSlider({
   start: startDate,
+  // end,
   value: endDate,
   period: 1,
   onChange: endDateHandler,
@@ -320,14 +313,42 @@ var datePanel = ui.Panel({
   widgets: [startDatePanel, endDatePanel],
 });
 
-// chart panel
+var cloudSlider = ui.Slider({
+  min: 0,
+  max: 60,
+  value: 1,
+  step: 1,
+  onChange: cloudThreshHandler,
+  style: {stretch: "horizontal"}
+});
+
+// Image acquisitions without clouds
+// var cloudPanel = ui.Panel({
+//   widgets: [ui.Label("Acquisizioni senza nuvole / mesi"), cloudSlider],
+//   layout: ui.Panel.Layout.flow("horizontal")
+// });
+
 var chartPlaceHolder = ui.Label({
   value: "👉 clicca sulla mappa per calcolare la serie temporale...",
-  style: chartText0,
+  style: graphText0,
 });
 var chartPanel = ui.Panel();
 
-// main panel
+var referencesLabel = ui.Label({
+  value: "Più informazioni",
+  style: {fontSize: "20px", fontWeight: "bold"}  //, textAlign : 'center', stretch: 'horizontal'},
+});
+
+var dataSource = ui.Label({
+  value: "• Dati satellitari: VIIRS Stray Light Corrected Nighttime Day/Night Band Composites Version 1",
+  targetUrl: "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG"
+});
+
+var gitHub = ui.Label({
+  value: "• Codice sorgente e documentazione: GitHub dell'Innovation Lab Vicenza",
+  targetUrl: "https://github.com/VicenzaInnovationLab/ee-inquinamento-luminoso"
+});
+
 var mainPanel = ui.Panel({
   widgets: [
     appTitle,
@@ -336,17 +357,20 @@ var mainPanel = ui.Panel({
     admPanel,
     datePanel,
     makePanelBreak(),
+    // cloudPanel,
+    // chart,
     chartPanel,
+    // graphInterp,
     makePanelBreak(),
-    chartInterpTitle,
-    gi1, gi2, gi3, gi4, gi5, gi6  // chart interpretation paragraphs
+    graphInterpTitle,
+    gi1, gi2, gi3, gi4, gi5, gi6
   ],
+  // layout,
   style: {width: "25%", border: "1px solid black", padding: "10px"}
 });
 
-// ### LEGEND PANEL ###
 
-// create the color bar for the legend.
+// Create the color bar for the legend.
 var colorBar = ui.Thumbnail({
   image: ee.Image.pixelLonLat().select(0),
   params: {
@@ -360,7 +384,7 @@ var colorBar = ui.Thumbnail({
   style: {stretch: "horizontal", margin: "0px 8px", maxHeight: "20px"},
 });
 
-// create a panel with three numbers for the legend.
+// Create a panel with three numbers for the legend.
 var legendLabels = ui.Panel({
   widgets: [
     ui.Label(viirsVis.min, {margin: "4px 8px", fontSize: "12px"}), //
@@ -382,52 +406,55 @@ var legendTitle = ui.Label({
 
 var legendPanel = ui.Panel([legendTitle, colorBar, legendLabels], null, {width: "25%"});
 
-// ### PROJECT INFO PANEL ###
-
-var infoCloseButton = ui.Button({
-  label: "Chiudi 'About'",
+// Project info panel
+var aboutInfoCloseButton = ui.Button({
+  label: "Chiudi",
   onClick: function() {
-    infoOpenButton.style().set("shown", true);
-    infoPanel.style().set("shown", false);
-  },
-  style: {position: "bottom-left", "shown": true}
-});
-var infoOpenButton = ui.Button({
-  label: "About",
-  onClick: function() {
-    infoOpenButton.style().set("shown", false);
-    infoPanel.style().set("shown", true);
+    aboutInfoOpenButton.style().set("shown", true);
+    aboutPanel.style().set("shown", false);
   },
   style: {position: "bottom-left", "shown": true}
 });
 
-// create a panel, initially hidden
+var aboutInfoOpenButton = ui.Button({
+  label: "Innovation Lab Vicenza",
+  onClick: function() {
+    aboutInfoOpenButton.style().set("shown", false);
+    aboutPanel.style().set("shown", true);
+  },
+  style: {position: "bottom-left", "shown": true}
+});
+
+// Create a panel, initially hidden
 var projectLogo = ui.Thumbnail({
     image: ee.Image("users/VicenzaInnovationLab/logo-progetto"),
     params: {min: 0, max: 255},
     style: {width: "200px"}
 });
-var infoPanel = ui.Panel({
-  style: {width: "400px", shown: false},
+
+var aboutPanel = ui.Panel({
+  style: {
+    width: "400px",
+    shown: false
+  },
   widgets: [
     projectLogo,
     funding,
-    refTitle,
-    refLink1,
-    refLink2,
-    infoCloseButton]
+    referencesLabel,
+    dataSource,
+    gitHub,
+    aboutInfoCloseButton]
 });
 
-// add the button to the map and the panel to root.
-Map.add(infoOpenButton);
-ui.root.insert(0, infoPanel);
+// Add the button to the map and the panel to root.
+Map.add(aboutInfoOpenButton);
+ui.root.insert(0, aboutPanel);
 
 // #############################################################################
 // ### VISUALIZATION ###
 // #############################################################################
 
 // ### CUSTOM BASEMAP ###
-
 var darkMap = 
 [{"elementType":"geometry","stylers":[{"color":"#212121"}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"elementType":"labels.text.stroke","stylers":[{"color":"#212121"}]},{"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#757575"}]},{"featureType":"administrative.country","elementType":"labels.text.fill","stylers":[{"color":"#9e9e9e"}]},{"featureType":"administrative.land_parcel","stylers":[{"visibility":"off"}]},{"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#bdbdbd"}]},{"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#181818"}]},{"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"poi.park","elementType":"labels.text.stroke","stylers":[{"color":"#1b1b1b"}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#2c2c2c"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#8a8a8a"}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#373737"}]},{"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#3c3c3c"}]},{"featureType":"road.highway.controlled_access","elementType":"geometry","stylers":[{"color":"#4e4e4e"}]},{"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#616161"}]},{"featureType":"transit","elementType":"labels.text.fill","stylers":[{"color":"#757575"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#000000"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#3d3d3d"}]}];
 Map.setOptions({
