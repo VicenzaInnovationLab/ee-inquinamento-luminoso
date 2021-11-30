@@ -2,7 +2,7 @@
 
 **Esplora la dinamica dell'inquinamento luminoso nel vicentino usando la [nostra web app](https://vicenzainnovationlab.users.earthengine.app/view/inquinamento-luminoso) basata su Google Earth Engine, una piattaforma big data, e immagini satellitari NASA.**
 
-<img  src="img/app-cover.png" alt="logo InnovationLab Vicenza" width="300">
+<img  src="img/app-cover-full.png" alt="logo InnovationLab Vicenza" width="600">
 
 ## Indice
 1. [Finanziamento](#finanziamento)
@@ -59,7 +59,7 @@ Non appena hai l'account Earth Engine, esplora la sua interfaccia con [questo ma
 
 ## Contatti
 
-- Progetto nel sito del comune: [VicenzaInnovationLab](https://www.comune.vicenza.it/uffici/cms/innovationlabvicenza.php)
+- Progetto Innovation Lab Vicenza: [pagina ufficiale](https://www.comune.vicenza.it/uffici/cms/innovationlabvicenza.php)
 - Sviluppatore: [Yaroslav Vasyunin](https://www.linkedin.com/in/vasyunin), Digital Innovation Hub di Confartigianato Vicenza ([digitalinnovationhubvicenza.it](https://digitalinnovationhubvicenza.it/))
 
 ## Ringraziamenti
