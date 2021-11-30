@@ -1,4 +1,4 @@
-# Esploratore delle Luci Notturne
+# Esploratore dell'inquinamento luminoso
 
 **Esplora la dinamica dell'inquinamento luminoso nel vicentino usando la [nostra web app](https://vicenzainnovationlab.users.earthengine.app/view/inquinamento-luminoso) basata su Google Earth Engine, una piattaforma big data, e immagini satellitari NASA.**
 
