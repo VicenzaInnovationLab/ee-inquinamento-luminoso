@@ -1,32 +1,46 @@
 /*******************************************************************************
- * Model *
- *
- * A section to define information about the data being presented in your
- * app.
- *
- * Guidelines: Use this section to import assets and define information that
- * are used to parameterize data-dependant widgets and control style and
- * behavior on UI interactions.
+ * Code style *
+ * 
+ *  - use camelCase for function and variable names
+ *  - use double quotes " by default
+ *  - use double space after your code in inline comments
  ******************************************************************************/
 
-// Define a JSON object for storing the data model.
+/*******************************************************************************
+ * Model *
+ ******************************************************************************/
+
+// define a JSON object for storing the data model
 var m = {};
 
 // night-time imagery
-m.imgCol = ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG");
-m.dataBand = "avg_rad";
-m.cloudBand = "cf_cvg";
+m.viirs = {
+  source: ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG"),
+  dataBand: "avg_rad",
+  cloudBand: "cf_cvg",
+  vis: {
+    min: 0.0,
+    max: 70.0,
+    opacity: 0.6,
+    palette: [
+      "#000000", "#dd6e20", "#dd9740",
+      "#e1b176", "#ecce96", "#ffffff"]
+  }
+};
 
 // territory of interest
-m.fCol = ee.FeatureCollection("users/VicenzaInnovationLab/istat21-province-g")
-           .filter(ee.Filter.eq("COD_REG", 5));  // Veneto Region provinces
-m.fColField = "DEN_UTS";
-m.fColValue = "Vicenza";
+m.borders = {
+  source: ee.FeatureCollection("users/VicenzaInnovationLab/istat21-province-g")
+            .filter(ee.Filter.eq("COD_REG", 5)),  // Veneto Region provinces
+  filtFieldName: "DEN_UTS",
+  filtFieldVal: "Vicenza",
+  vis: {color: "#ea4f4d", width: 2, fillColor: "ff000000"}
+};
 
 // time interval
 m.dateFormat = "YYYY-MM-dd";
 m.date = {
-  start: ee.Image(m.imgCol.first()).date().format(m.dateFormat).getInfo(),
+  start: ee.Image(m.viirs.source.first()).date().format(m.dateFormat).getInfo(),
   end: ee.Date(Date.now()).format(m.dateFormat).getInfo(),
 };
 
@@ -36,18 +50,12 @@ m.bufRadius = 50;  // in a clicked point, in meters
 
 /*******************************************************************************
  * Translation *
- *
- * A section to define the text strings for different languages.
- * 
- * Guidelines: Use this section to provide support for a multilingual app:
- * t.draft = {
- *   it: "",
- *   en: "",
- *   ru: "",
- * };
  ******************************************************************************/
 
-var ln = "ru";  // app language: "it", "en" or "ru"
+// app language: "it", "en" or "ru"
+var ln = "it";  
+
+// define a JSON object for storing translated text
 var t = {};
 
 t.mainTitle = {
@@ -56,7 +64,7 @@ t.mainTitle = {
   ru: "Карта светового загрязнения",
 };
 
-t.startMsg = {
+t.intro = {
   it: "Seleziona una provincia e un periodo per osservare l'intensità delle \
   luci notturne. Per vedere una dinamica in un punto specifico clicca sulla \
   mappa e aspetta un po' - i calcoli che creano il grafico vengono eseguiti \
@@ -91,13 +99,12 @@ t.funding = {
 };
 
 // chart
-t.chartPlaceholder = {
-  it: "👉 clicca sulla mappa per calcolare la serie temporale...",
-  en: "👉 click on the map to calculate the time series...",
-  ru: "👉 нажмите на карту, чтобы построить график...",
-};
-
 t.chart = {
+  placeholder: {
+    it: "👉 clicca sulla mappa per calcolare la serie temporale...",
+    en: "👉 click on the map to calculate the time series...",
+    ru: "👉 нажмите на карту, чтобы построить график...",
+  },
   title: {
     it: "Dinamica nel punto interrogato",
     en: "Dynamics at the Clicked Point",
@@ -210,13 +217,13 @@ t.layers = {
 };
 
 // interface elements
-t.selector = {
+t.provinceSelector = {
   it: "Scegli una provincia",
   en: "Select a province",
   ru: "Выберите провинцию",
 };
 
-t.slider = {
+t.dateSlider = {
   start: {
     it: "Inizio: ",
     en: "Start: ",
@@ -263,119 +270,260 @@ t.ref = {
 
 /*******************************************************************************
  * Components *
- *
- * A section to define the widgets that will compose your app.
- *
- * Guidelines:
- * 1. Except for static text and constraints, accept default values;
- *    initialize others in the initialization section.
- * 2. Limit composition of widgets to those belonging to an inseparable unit
- *    (i.e. a group of widgets that would make no sense out of order).
  ******************************************************************************/
 
-// Define a JSON object for storing UI components.
+// define a JSON object for storing UI components
 var c = {};
 
-c.mainTitle = ui.Label(t.mainTitle[ln]);
-c.startMsg = ui.Label(t.startMsg[ln]);
-c.chartNoteTitle = ui.Label(t.chartNote.title[ln]);
-c.chartSection = {
-  1: ui.Label(t.chartNote.section[1][ln]),
-  2: ui.Label(t.chartNote.section[2][ln]),
-  3: ui.Label(t.chartNote.section[3][ln]),
+c.basemap = {
+  mapTypeId: t.layers.map[ln],
+  styles: {},
+  types: [t.layers.map[ln]]
 };
-c.chartBody = {
-  1: ui.Label(t.chartNote.body[1][ln]),
-  2: ui.Label(t.chartNote.body[2][ln]),
-  3: ui.Label(t.chartNote.body[3][ln]),
+c.mainTitle = ui.Label(t.mainTitle[ln]);
+c.intro = ui.Label(t.intro[ln]);
+c.chartNote = {
+  title: ui.Label(t.chartNote.title[ln]),
+  section: {
+    1: ui.Label(t.chartNote.section[1][ln]),
+    2: ui.Label(t.chartNote.section[2][ln]),
+    3: ui.Label(t.chartNote.section[3][ln]),
+  },
+  body: {
+    1: ui.Label(t.chartNote.body[1][ln]),
+    2: ui.Label(t.chartNote.body[2][ln]),
+    3: ui.Label(t.chartNote.body[3][ln]),
+  }
 };
 c.funding = ui.Label(t.funding[ln]);
-
-/* Example
-c.legend = {
-  title: ui.Label();
-}
-*/
-
+c.provinceLabel = ui.Label(t.provinceSelector[ln]);
+c.startDateLabel = ui.Label(t.dateSlider.start[ln]);
+c.endDateLabel = ui.Label(t.dateSlider.end[ln]);
+c.chartPlaceHolder = ui.Label(t.chart.placeholder[ln]);
+c.ref = {
+  title: ui.Label(t.ref.title[ln]),
+  dataSource: ui.Label({
+    value: t.ref.data[ln],
+    targetUrl: "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG"
+  }),
+  gitHub: ui.Label({
+    value: t.ref.docs[ln],
+    targetUrl: "https://github.com/VicenzaInnovationLab/ee-inquinamento-luminoso"
+  })
+};
 
 /*******************************************************************************
  * Composition *
- *
- * A section to compose the app i.e. add child widgets and widget groups to
- * first-level parent components like control panels and maps.
- *
- * Guidelines: There is a gradient between components and composition. There
- * are no hard guidelines here; use this section to help conceptually break up
- * the composition of complicated apps with many widgets and widget groups.
  ******************************************************************************/
 
-/* Example
-ui.root.clear();
-ui.root.add(c.controlPanel);
-ui.root.add(c.map);
-*/
+// globals
+var aoi, filteredColl, maskedColl, composite;
+var aois = m.borders.source
+            .aggregate_array(m.borders.filtFieldName).sort().getInfo();
 
+var provinceSelector = ui.Select({
+  items: aois,
+  placeholder: t.chart.placeholder[ln],
+  value: m.borders.filtFieldVal,
+  onChange: aoiNameHandler
+});
+
+var provincePanel = ui.Panel({
+  widgets: [c.provinceLabel, provinceSelector],
+  layout: ui.Panel.Layout.flow("horizontal")
+});
+
+var startDateSelector = ui.DateSlider({
+  start: m.date.start,
+  value: m.date.start,
+  period: 1,
+  onChange: startDateHandler
+});
+
+var endDateSelector = ui.DateSlider({
+  start: m.date.start,
+  value: m.date.end,
+  period: 1,
+  onChange: endDateHandler
+});
+
+// panels
+
+var startDatePanel = ui.Panel({
+  widgets: [c.startDateLabel, startDateSelector],
+  layout: ui.Panel.Layout.flow("horizontal")
+});
+
+var endDatePanel = ui.Panel({
+  widgets: [c.endDateLabel, endDateSelector],
+  layout: ui.Panel.Layout.flow("horizontal")
+});
+
+var datePanel = ui.Panel({
+  widgets: [startDatePanel, endDatePanel],
+});
+
+var chartPanel = ui.Panel();
+
+var mainPanel = ui.Panel({
+  widgets: [
+    c.mainTitle,
+    c.intro,
+    makePanelBreak(),
+    provincePanel,
+    datePanel,
+    makePanelBreak(),
+    chartPanel,
+    makePanelBreak(),
+    c.chartNote.title,
+    c.chartNote.section[1], c.chartNote.body[1],
+    c.chartNote.section[2], c.chartNote.body[2],
+    c.chartNote.section[3], c.chartNote.body[3],
+  ],
+  style: {width: "25%", border: "1px solid black", padding: "10px"}
+});
+
+// Create the color bar for the legend.
+var colorBar = ui.Thumbnail({
+  image: ee.Image.pixelLonLat().select(0),
+  params: {
+    min: 0,
+    max: 1,
+    palette: m.viirs.vis.palette,
+    bbox: [0, 0, 1, 0.1],
+    dimensions: "100x10",
+    format: "png",
+  },
+  style: {stretch: "horizontal", margin: "0px 8px", maxHeight: "20px"},
+});
+
+// create a panel with three numbers for the legend
+var legendLabels = ui.Panel({
+  widgets: [
+    ui.Label(m.viirs.vis.min, {margin: "4px 8px", fontSize: "12px"}), //
+    ui.Label((m.viirs.vis.max / 2), {
+      margin: "4px 8px",
+      textAlign: "center",
+      stretch: "horizontal",
+      fontSize: "12px"
+    }),
+    ui.Label(m.viirs.vis.max, {margin: "4px 8px", fontSize: "12px"})
+  ],
+  layout: ui.Panel.Layout.flow("horizontal")
+});
+
+var legendTitle = ui.Label({
+  value: t.chart.vAxis[ln],
+  style: {fontWeight: "bold", fontSize: "12px"}
+});
+
+var legendPanel = ui.Panel([legendTitle, colorBar, legendLabels], null, {width: "25%"});
+
+// Project info panel
+var aboutInfoCloseButton = ui.Button({
+  label: t.about.close[ln],
+  onClick: function() {
+    aboutInfoOpenButton.style().set("shown", true);
+    aboutPanel.style().set("shown", false);
+  },
+  style: {position: "bottom-left", "shown": true}
+});
+
+var aboutInfoOpenButton = ui.Button({
+  label: t.about.open[ln],
+  onClick: function() {
+    aboutInfoOpenButton.style().set("shown", false);
+    aboutPanel.style().set("shown", true);
+  },
+  style: {position: "bottom-left", "shown": true}
+});
+
+
+var projectLogo = ui.Thumbnail({
+    image: ee.Image("users/VicenzaInnovationLab/logo-progetto"),
+    params: {min: 0, max: 255},
+    style: {width: "200px"}
+});
+
+var aboutPanel = ui.Panel({  // create a panel, initially hidden
+  style: {
+    width: "400px",
+    shown: false
+  },
+  widgets: [
+    projectLogo,
+    c.funding,
+    c.ref.title,
+    c.ref.dataSource,
+    c.ref.gitHub,
+    aboutInfoCloseButton]
+});
+
+Map.add(aboutInfoOpenButton);
+ui.root.insert(0, aboutPanel);
+
+ui.root.insert(2, mainPanel);
+Map.add(legendPanel);
+Map.onClick(mapClickHandler);
+
+chartPanel.widgets().set(0, c.chartPlaceHolder);
+updateMap();
+Map.centerObject(aoi);
 
 /*******************************************************************************
  * Styling *
- *
- * A section to define and set widget style properties.
- *
- * Guidelines:
- * 1. At the top, define styles for widget "classes" i.e. styles that might be
- *    applied to several widgets, like text styles or margin styles.
- * 2. Set "inline" style properties for single-use styles.
- * 3. You can add multiple styles to widgets, add "inline" style followed by
- *    "class" styles. If multiple styles need to be set on the same widget, do
- *    it consecutively to maintain order.
  ******************************************************************************/
 
-// Define a JSON object for defining CSS-like class style properties.
+// define a JSON object for defining CSS-like class style properties
 var s = {};
 
-s.brandColors = {
-  grigio0: "#e4e4e4",  // backgrounds
-  grigio1: "#a0a3a6",
-  rosso0: "#f3a4a4",  // backgrounds
-  rosso1: "#ea4f4d",
-  rosso2: "#e52323",
-  rosso3: "#b71c1a",  // titles
-  blu: "#0d5a8c",  // subtitles
-//bluEE: "#3079ed",  // GEE links
-};
-s.border = {color: s.brandColors.rosso1, width: 2, fillColor: "ff000000"};
-s.viirs = {
-  min: 0.0,
-  max: 70.0,
-  opacity: 0.6,
-  palette: [
-    "#000000", "#dd6e20", "#dd9740",
-    "#e1b176", "#ecce96", "#ffffff"],
+s.colors = {
+  brand: {
+    grigio0: "#e4e4e4",  // backgrounds
+    grigio1: "#a0a3a6",
+    rosso0: "#f3a4a4",  // backgrounds
+    rosso1: "#ea4f4d",
+    rosso2: "#e52323",
+    rosso3: "#b71c1a",  // titles
+    blu: "#0d5a8c",  // subtitles
+  },
+  chart: {
+    mainCurve: "#eed3a2",
+    trend: "#e52323",
+    areaBackground: "#4e4e4e",
+    gridline: "#3b3b3b",
+  },
 };
 
 s.mainTitle = {
   fontSize: "26px",
   fontWeight: "bold",
-  color: s.brandColors.rosso3
+  color: s.colors.brand.rosso3
 };
-s.startMsg = {textAlign: "justify", stretch: "horizontal"};
-s.chartNoteTitle = {fontWeight: "bold"};
-s.chartPlaceholder = {color: s.brandColors.rosso2, fontSize: 14};
+s.intro = {textAlign: "justify", stretch: "horizontal"};
+s.chartNote = {
+  title: {fontWeight: "bold"},
+  section: {color: s.colors.brand.rosso1}
+};
 s.chart = {
+  placeholder: {
+    color: s.colors.brand.rosso2,
+    fontSize: 14
+  },
   title: {
-    color: s.brandColors.rosso2,
-    fontSize: 14,
-    bold: false,
+    color: s.colors.brand.blu,
+    fontSize: 16,
+    bold: true,
     italic: false
   },
   axis: {
-    color: s.brandColors.blu,
+    color: s.colors.brand.blu,
     fontSize: 12,
     bold: false,
     italic: false
   },
   default: {
-    color: s.brandColors.blu,
+    color: s.colors.brand.blu,
     fontSize: 11,
     bold: false,
     italic: false
@@ -507,9 +655,28 @@ s.darkMap = [{
 }];
 
 c.mainTitle.style().set(s.mainTitle);
-c.startMsg.style().set(s.startMsg);
-c.chartNoteTitle.style().set(s.startMsg);
+c.intro.style().set(s.intro);
+c.chartNote.title.style().set(s.chartNote.title);
+c.chartNote.section[1].style().set(s.chartNote.section);
+c.chartNote.section[2].style().set(s.chartNote.section);
+c.chartNote.section[3].style().set(s.chartNote.section);
+
 c.funding.style().set(s.aboutText);
+c.chartPlaceHolder.style().set(s.chart.placeholder);
+
+c.provinceLabel.style().set({stretch: "vertical"});
+provinceSelector.style().set({stretch: "horizontal"});
+
+c.startDateLabel.style().set({stretch: "both"});
+c.endDateLabel.style().set({stretch: "both"});
+
+startDateSelector.style().set({width: "72%"});
+endDateSelector.style().set({width: "72%"});
+
+c.ref.title.style().set({fontSize: "20px", fontWeight: "bold"});
+
+c.basemap.styles[t.layers.map[ln]] = s.darkMap;
+Map.setOptions(c.basemap);
 
 /*******************************************************************************
  * Behaviors *
@@ -525,24 +692,24 @@ c.funding.style().set(s.aboutText);
  * 3. As much as possible, include callbacks that update URL parameters.
  ******************************************************************************/
 
- var applyFilters = function (target_collection) {
+function applyFilters(target_collection) {
   return target_collection
     .filter(ee.Filter.bounds(aoi))
     .filter(ee.Filter.date(m.date.start, m.date.end));
-};
+}
 
-var maskClouds = function (img) {
-  var mask = img.select(m.cloudBand).gte(m.cloudThreshold);
+function maskClouds(img) {
+  var mask = img.select(m.viirs.cloudBand).gte(m.cloudThreshold);
   return img.updateMask(mask);
-};
+}
 
-var makeComposite = function (target_collection) {
-  return target_collection.select(m.dataBand).mean().clip(aoi);
-};
+function makeComposite(target_collection) {
+  return target_collection.select(m.viirs.dataBand).mean().clip(aoi);
+}
 
-// ### GRAPHICAL USER INTERFACE ###
+// GUI
 
-var makePanelBreak = function () {
+function makePanelBreak() {
   return ui.Panel(
     {
       style: {
@@ -552,54 +719,55 @@ var makePanelBreak = function () {
         margin: "8px 0px"
       }
     });
-};
+}
 
-var aoiNameHandler = function (selectedName) {
-  m.fColValue = selectedName;
-  print(m.fColValue);
+function aoiNameHandler(selectedName) {
+  m.borders.filtFieldVal = selectedName;
+  print(m.borders.filtFieldVal);
   updateMap();
   Map.centerObject(aoi);
-  chartPanel.widgets().set(0, chartPlaceHolder);
-};
+  chartPanel.widgets().set(0, c.chartPlaceHolder);
+}
 
-var startDateHandler = function (dateRange) {
+function startDateHandler(dateRange) {
   m.date.start = dateRange.start();
   updateMap();
-};
+}
 
-var endDateHandler = function (dateRange) {
+function endDateHandler(dateRange) {
   m.date.end = dateRange.start();
   updateMap();
-};
+}
 
-var cloudThreshHandler = function (value) {
+function cloudThreshHandler(value) {
   m.cloudThreshold = value;
   updateMap();
-};
+}
 
-var updateMap = function () {
-  aoi = m.fCol.filter(ee.Filter.eq(m.fColField, m.fColValue));
-  filteredColl = applyFilters(m.imgCol);
+function updateMap() {
+  aoi = m.borders.source.filter(ee.Filter.eq(m.borders.filtFieldName, m.borders.filtFieldVal));
+  filteredColl = applyFilters(m.viirs.source);
   maskedColl = filteredColl.map(maskClouds);
   print("Immagini in collezione VIIRS:", maskedColl.size());
   composite = makeComposite(maskedColl);
-  var compositeLayer = ui.Map.Layer(composite, s.viirs, t.layers.raster[ln]);
-  var borderLayer = ui.Map.Layer(aoi.style(s.border), {}, t.layers.vector[ln]);
+  var compositeLayer = ui.Map.Layer(composite, m.viirs.vis, t.layers.raster[ln]);
+  var borderLayer = ui.Map.Layer(aoi.style(m.borders.vis), {}, t.layers.vector[ln]);
   Map.layers().set(0, compositeLayer);
   Map.layers().set(1, borderLayer);
-};
+}
 
-var mapClickHandler = function (coords) {
+function mapClickHandler(coords) {
   var clickedPoint = ee.Geometry.Point(coords.lon, coords.lat).buffer(m.bufRadius);
-  var clickedPointLayer = ui.Map.Layer(clickedPoint, {color: "pink"}, t.layers.point[ln]);
+  var clickedPointLayer = ui.Map.Layer(clickedPoint, { color: "pink" }, t.layers.point[ln]);
   Map.layers().set(2, clickedPointLayer);
 
-var chart = ui.Chart.image.series({
-    imageCollection: maskedColl.select(m.dataBand),
+  var chart = ui.Chart.image.series({
+    imageCollection: maskedColl.select(m.viirs.dataBand),
     region: clickedPoint,
     reducer: ee.Reducer.mean(),
     scale: 500,
-  }).setSeriesNames([t.chart.series[ln]])
+  })
+    .setSeriesNames([t.chart.series[ln]])
     .setOptions({
       title: t.chart.title[ln],
       titleTextStyle: s.chart.title,
@@ -607,273 +775,35 @@ var chart = ui.Chart.image.series({
         title: t.chart.vAxis[ln],
         textStyle: s.chart.default,
         titleTextStyle: s.chart.axis,
-        gridlines: {color: "#3b3b3b"}},
+        gridlines: { color: s.colors.chart.gridline }
+      },
       hAxis: {
         title: t.chart.hAxis[ln],
         textStyle: s.chart.default,
         titleTextStyle: s.chart.axis,
-        gridlines: {color: "#3b3b3b"},
+        gridlines: { color: s.colors.chart.gridline },
       },
       curveType: "function",
-      colors: ["#eed3a2"],
-      legend: {textStyle: s.chart.axis},
-      chartArea: {backgroundColor: "#4e4e4e"},
+      colors: [s.colors.chart.mainCurve],
+      legend: { textStyle: s.chart.axis },
+      chartArea: { backgroundColor: s.colors.chart.areaBackground },
       trendlines: {
-        0: {  // add a trend line to the 1st series
+        0: {
           title: t.chart.trend[ln],
-          type: "polynomial",  // "linear", "polynomial" or "exponential"
-          color: s.brandColors.rosso2,
+          type: "polynomial",
+          color: s.colors.chart.trend,
           lineWidth: 3,
           opacity: 0.9,
           visibleInLegend: true,
         }
       }
     });
+
   chartPanel.widgets().set(0, chart);
-};
-
-
-// #############################################################################
-// ### IMPLEMENTATION ###
-// #############################################################################
-
-// globals
-var aoi;
-var filteredColl;
-var maskedColl;
-var composite;
-
-var aois = m.fCol.aggregate_array(m.fColField).sort().getInfo();
-
-// UI
-var provinceSelector = ui.Select({
-  items: aois,
-  placeholder: "Seleziona un'area",
-  value: m.fColValue,
-  onChange: aoiNameHandler,
-  // disabled,
-  style: {stretch: "horizontal"}
-});
-
-var provinceLabel = ui.Label({
-  value: t.selector[ln],
-  style: {stretch: "vertical"}
-});
-
-var admPanel = ui.Panel({
-  widgets: [provinceLabel, provinceSelector],
-  layout: ui.Panel.Layout.flow('horizontal')
-});
-
-var startDateSelector = ui.DateSlider({
-  start: m.date.start,
-  // end,
-  value: m.date.start,
-  period: 1,
-  onChange: startDateHandler,
-  style: {width: "72%"}
-});
-
-var endDateSelector = ui.DateSlider({
-  start: m.date.start,
-  // end,
-  value: m.date.end,
-  period: 1,
-  onChange: endDateHandler,
-  style: {width: "72%"}
-});
-
-var startDateLabel = ui.Label({value: t.slider.start[ln], style: {stretch: "both"}});
-var endDateLabel = ui.Label({value: t.slider.end[ln], style: {stretch: "both",}});
-
-var startDatePanel = ui.Panel({
-  widgets: [startDateLabel, startDateSelector],
-  layout: ui.Panel.Layout.flow("horizontal")
-});
-
-var endDatePanel = ui.Panel({
-  widgets: [endDateLabel, endDateSelector],
-  layout: ui.Panel.Layout.flow("horizontal")
-});
-
-var datePanel = ui.Panel({
-  widgets: [startDatePanel, endDatePanel],
-});
-
-var cloudSlider = ui.Slider({
-  min: 0,
-  max: 60,
-  value: 1,
-  step: 1,
-  onChange: cloudThreshHandler,
-  style: {stretch: "horizontal"}
-});
-
-// Image acquisitions without clouds
-// var cloudPanel = ui.Panel({
-//   widgets: [ui.Label("Acquisizioni senza nuvole / mesi"), cloudSlider],
-//   layout: ui.Panel.Layout.flow("horizontal")
-// });
-
-var chartPlaceHolder = ui.Label({
-  value: t.chartPlaceholder[ln],
-  style: s.chartPlaceholder,
-});
-var chartPanel = ui.Panel();
-
-var referencesLabel = ui.Label({
-  value: t.ref.title[ln],
-  style: {fontSize: "20px", fontWeight: "bold"}  //, textAlign : 'center', stretch: 'horizontal'},
-});
-
-var dataSource = ui.Label({
-  value: t.ref.data[ln],
-  targetUrl: "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG"
-});
-
-var gitHub = ui.Label({
-  value: t.ref.docs[ln],
-  targetUrl: "https://github.com/VicenzaInnovationLab/ee-inquinamento-luminoso"
-});
-
-var mainPanel = ui.Panel({
-  widgets: [
-    c.mainTitle,
-    c.startMsg,
-    makePanelBreak(),
-    admPanel,
-    datePanel,
-    makePanelBreak(),
-    chartPanel,
-    makePanelBreak(),
-    c.chartNoteTitle,
-    c.chartSection[1], c.chartBody[1],
-    c.chartSection[2], c.chartBody[2],
-    c.chartSection[3], c.chartBody[3],
-  ],
-  // layout,
-  style: {width: "25%", border: "1px solid black", padding: "10px"}
-});
-
-
-// Create the color bar for the legend.
-var colorBar = ui.Thumbnail({
-  image: ee.Image.pixelLonLat().select(0),
-  params: {
-    min: 0,
-    max: 1,
-    palette: s.viirs.palette,
-    bbox: [0, 0, 1, 0.1],
-    dimensions: "100x10",
-    format: "png",
-  },
-  style: {stretch: "horizontal", margin: "0px 8px", maxHeight: "20px"},
-});
-
-// Create a panel with three numbers for the legend.
-var legendLabels = ui.Panel({
-  widgets: [
-    ui.Label(s.viirs.min, {margin: "4px 8px", fontSize: "12px"}), //
-    ui.Label((s.viirs.max / 2), {
-      margin: "4px 8px",
-      textAlign: "center",
-      stretch: "horizontal",
-      fontSize: "12px"
-    }),
-    ui.Label(s.viirs.max, {margin: "4px 8px", fontSize: "12px"})
-  ],
-  layout: ui.Panel.Layout.flow("horizontal")
-});
-
-var legendTitle = ui.Label({
-  value: t.chart.vAxis[ln],
-  style: {fontWeight: "bold", fontSize: "12px"}
-});
-
-var legendPanel = ui.Panel([legendTitle, colorBar, legendLabels], null, {width: "25%"});
-
-// Project info panel
-var aboutInfoCloseButton = ui.Button({
-  label: t.about.close[ln],
-  onClick: function() {
-    aboutInfoOpenButton.style().set("shown", true);
-    aboutPanel.style().set("shown", false);
-  },
-  style: {position: "bottom-left", "shown": true}
-});
-
-var aboutInfoOpenButton = ui.Button({
-  label: t.about.open[ln],
-  onClick: function() {
-    aboutInfoOpenButton.style().set("shown", false);
-    aboutPanel.style().set("shown", true);
-  },
-  style: {position: "bottom-left", "shown": true}
-});
-
-// Create a panel, initially hidden
-var projectLogo = ui.Thumbnail({
-    image: ee.Image("users/VicenzaInnovationLab/logo-progetto"),
-    params: {min: 0, max: 255},
-    style: {width: "200px"}
-});
-
-var aboutPanel = ui.Panel({
-  style: {
-    width: "400px",
-    shown: false
-  },
-  widgets: [
-    projectLogo,
-    c.funding,
-    referencesLabel,
-    dataSource,
-    gitHub,
-    aboutInfoCloseButton]
-});
-
-// Add the button to the map and the panel to root.
-Map.add(aboutInfoOpenButton);
-ui.root.insert(0, aboutPanel);
-
-// #############################################################################
-// ### VISUALIZATION ###
-// #############################################################################
-
-var basemapOptions = {
-  mapTypeId: t.layers.map[ln],
-  styles: {},
-  types: [t.layers.map[ln]]
-};
-basemapOptions.styles[t.layers.map[ln]] = s.darkMap;
-Map.setOptions(basemapOptions);
-
-// ### USER INTERFACE ###
-
-ui.root.insert(2, mainPanel);
-Map.add(legendPanel);
-Map.onClick(mapClickHandler);
-
-chartPanel.widgets().set(0, chartPlaceHolder);
-updateMap();
-Map.centerObject(aoi);
-
-/* Example
-// Handles updating the legend when band selector changes.
-function updateLegend() {
-  c.legend.title.setValue(c.bandSelect.getValue() + ' (%)');
 }
-*/
-
 
 /*******************************************************************************
  * Initialize *
- *
- * A section to initialize the app state on load.
- *
- * Guidelines:
- * 1. At the top, define any helper functions.
- * 2. As much as possible, use URL params to initial the state of the app.
  ******************************************************************************/
 
 /* Example
