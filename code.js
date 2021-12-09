@@ -10,55 +10,57 @@
  * Model *
  ******************************************************************************/
 
-// define a JSON object for storing the data model
+// Define a JSON object for storing the data model
 var m = {};
 
-// night-time imagery
-m.viirs = {
-  source: ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG"),
-  dataBand: "avg_rad",
-  cloudBand: "cf_cvg",
-  vis: {
-    min: 0.0,
-    max: 50.0,
-    opacity: 0.6,
-    palette: [
-      "#000000", "#dd6e20", "#dd9740",
-      "#e1b176", "#ecce96", "#ffffff"]
-  }
+/* Night-time Imagery *********************************************************/
+m.viirs = {};
+m.viirs.source = ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG");
+m.viirs.bands = {data: "avg_rad", cloud: "cf_cvg"};
+m.viirs.cloudThreshold = 1;
+m.viirs.vis = {
+  min: 0.0,
+  max: 50.0,
+  opacity: 0.6,
+  palette: [
+    "#000000", "#dd6e20", "#dd9740",
+    "#e1b176", "#ecce96", "#ffffff"
+  ]
 };
 
-// territory of interest
-m.borders = {
-  source: ee.FeatureCollection("users/VicenzaInnovationLab/istat21-province-g")
-            .filter(ee.Filter.eq("COD_REG", 5)),  // Veneto Region provinces
-  filtFieldName: "DEN_UTS",
-  filtFieldVal: "Vicenza",
-  vis: {color: "#ea4f4d", width: 2, fillColor: "ff000000"}
-};
+/* Territory of Interest ******************************************************/
+m.provinces = {};
+m.provinces.source = ee.FeatureCollection(
+  "users/VicenzaInnovationLab/istat21-province-g")
+  .filter(ee.Filter.eq("COD_REG", 5));  // Veneto Region provinces
+m.provinces.filtFieldName = "DEN_UTS";
+m.provinces.filtFieldVal = "Vicenza";
+m.provinces.list = m.provinces.source.aggregate_array(m.provinces.filtFieldName)
+                   .sort().getInfo();
+m.provinces.vis = {color: "#ea4f4d", width: 2, fillColor: "ff000000"};
+m.provinces.zoom = 10;
 
-// time interval
-m.dateFormat = "YYYY-MM-dd";
-m.date = {
-  start: ee.Image(m.viirs.source.first()).date().format(m.dateFormat).getInfo(),
-  end: ee.Date(Date.now()).format(m.dateFormat).getInfo(),
-};
+/* Time Interval **************************************************************/
+m.date = {};
+m.date.format = "YYYY-MM-dd";
+m.date.start = ee.Image(m.viirs.source.first())
+               .date().format(m.date.format).getInfo();  // from dataset
+m.date.end = ee.Date(Date.now()).format(m.date.format).getInfo();  // today
 
-// other
-m.cloudThreshold = 1;
+/* Other **********************************************************************/
 m.bufRadius = 50;  // in a clicked point, in meters
 
 /*******************************************************************************
  * Translation *
  ******************************************************************************/
 
-// app language: "it", "en" or "ru"
+// Choose app language: "it", "en" or "ru"
 var ln = "it";  
 
-// define a JSON object for storing translated text
+// Define a JSON object for storing translated text
 var t = {};
 
-t.mainTitle = {
+t.title = {
   it: "Esploratore dell'inquinamento luminoso",
   en: "Light Pollution Explorer",
   ru: "Карта светового загрязнения",
@@ -78,7 +80,123 @@ t.intro = {
   реального времени.",
 };
 
-t.funding = {
+/* Chart **********************************************************************/
+
+t.chart = {};
+t.chart.placeholder = {
+  it: "👉 clicca sulla mappa per calcolare la serie temporale...",
+  en: "👉 click on the map to calculate the time series...",
+  ru: "👉 нажмите на карту, чтобы построить график...",
+};
+t.chart.title = {
+  it: "Dinamica nel punto interrogato",
+  en: "Dynamics at the Clicked Point",
+  ru: "Динамика в выбранной точке",
+};
+t.chart.vAxis = {
+  it: "Radianza, nW/(cm²·sr)",
+  en: "Radiace, nW/(cm²·sr)",
+  ru: "Энерг. яркость, нВт/(см²·ср)",
+};
+t.chart.hAxis = {it: "Data", en: "Date", ru: "Дата"};
+t.chart.trend = {it: "Trend", en: "Trend", ru: "Тренд"},
+t.chart.series = {it: "Radianza", en: "Radiance", ru: "Энерг. яркость"};
+
+/* Chart Notes ****************************************************************/
+
+t.chartNote = {};
+t.chartNote.title = {
+  it: "Note sull'interpretazione del grafico",
+  en: "Chart Interpretation Notes",
+  ru: "Пояснения по интерпретации графика"
+};
+t.chartNote.section = {};
+t.chartNote.section[1] = {
+  it: "Vicenza (VI): valore di ca. 50 nW/(cm²·sr)",
+  en: "Vicenza (VI): valore di ca. 50 nW/(cm²·sr)",
+  ru: "Виченца (пров. Виченца): значения ок. 50 нВт/(см²·ср)"
+};
+t.chartNote.section[2] = {
+  it: "Malo (VI): valore di ca. 20 nW/(cm²·sr)",
+  en: "Malo (VI): valore di ca. 20 nW/(cm²·sr)",
+  ru: "Мало (пров. Виченца): значения ок. 20 нВт/(см²·ср)"
+};
+t.chartNote.section[3] = {
+  it: "Sasso (VI): valore di ca. 5 nW/(cm²·sr)",
+  en: "Sasso (VI): valore di ca. 5 nW/(cm²·sr)",
+  ru: "Сассо (пров. Виченца): значения ок. 5 нВт/(см²·ср)"
+};
+t.chartNote.body = {};
+t.chartNote.body[1] = {
+  it: "Inquinamento luminoso molto alto. L'intero sfondo del cielo ha una \
+  vaga tonalità bianca grigiastra. Forti sorgenti luminose sono evidenti \
+  in tutte le direzioni. La Via Lattea è totalmente invisibile o quasi.",
+  en: "The entire sky background has a vague, grayish white hue. Strong \
+  light sources are evident in all directions. The Milky Way is totally \
+  invisible or nearly so.",
+  ru: "Весь фон неба имеет расплывчатый, серовато-белый оттенок. Сильные \
+  источники света очевидны во всех направлениях. Млечный Путь полностью \
+  невидим или почти таков."
+};
+t.chartNote.body[2] = {
+  it: "Inquinamento luminoso abbastanza alto. La Via Lattea è molto debole \
+  o invisibile vicino all'orizzonte e sembra piuttosto sbiadita sopra \
+  la testa. Le sorgenti luminose sono evidenti nella maggior parte se non \
+  in tutte le direzioni.",
+  en: "Fairly high light pollution. The Milky Way is very weak or \
+  invisible near the horizon and looks rather washed out overhead. \
+  Light sources are evident in most if not all directions.",
+  ru: "Довольно высокое световое загрязнение. Млечный Путь очень тусклый \
+  или невидим вблизи горизонта и выглядит довольно размытым над головой. \
+  Источники света очевидны в большинстве, если не во всех направлениях."
+};
+t.chartNote.body[3] = {
+  it:  "Inquinamento luminoso moderato. Sono visibili solo strutture della \
+  Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza \
+  buono per gli standard di molte persone.",
+  en: "Moderate light pollution. Only large structures of the Milky Way \
+  are visible. Such a sky, fairly good by many people's standards.",
+  ru: "Умеренное световое загрязнение. Видны только крупные структуры \
+  Млечного Пути. Такое ночное небо будет удовлетворять ожиданиям \
+  многих людей."
+};
+
+/* Map Layers *****************************************************************/
+
+t.layers = {};
+t.layers.point = {
+  it: "Punto interrogato",
+  en: "Clicked Point",
+  ru: "Выбранная точка",
+};
+t.layers.vector = {
+  it: "Limiti amministrativi",
+  en: "Administrative Limits",
+  ru: "Административные границы",
+};
+t.layers.raster = {
+  it: "Luci notturne (media)",
+  en: "Averaged Night Lights",
+  ru: "Усредн. ночная светимость",
+};
+t.layers.basemap = {it: "Mappa scura", en: "Dark map", ru: "Тёмная карта"};
+
+/* Interface Elements *********************************************************/
+
+t.provinceSelectorLabel = {
+  it: "Scegli una provincia",
+  en: "Select a province",
+  ru: "Выберите провинцию",
+};
+
+t.timeline = {};
+t.timeline.start = {it: "Inizio: ", en: "Start: ", ru: "Начало: "};
+t.timeline.end = {it: "Fine: ", en: "End: ", ru: "Конец: "};
+
+/* About **********************************************************************/
+
+t.about = {};
+t.about.funding = {
   it: "Il progetto è parte del Programma Operativo Regionale del Fondo \
   Europeo di Sviluppo Regionale (POR FESR 2014-2020) del Veneto, \
   nell'ambito del bando dell'azione 231 volto alla “costituzione di \
@@ -97,311 +215,127 @@ t.funding = {
   консолидацию / развитие сети Centri P3@-Palestre Digitali и \
   распространение культуры открытых данных».",
 };
-
-// chart
-t.chart = {
-  placeholder: {
-    it: "👉 clicca sulla mappa per calcolare la serie temporale...",
-    en: "👉 click on the map to calculate the time series...",
-    ru: "👉 нажмите на карту, чтобы построить график...",
-  },
-  title: {
-    it: "Dinamica nel punto interrogato",
-    en: "Dynamics at the Clicked Point",
-    ru: "Динамика в выбранной точке",
-  },
-  vAxis: {
-    it: "Radianza, nW/(cm²·sr)",
-    en: "Radiace, nW/(cm²·sr)",
-    ru: "Энерг. яркость, нВт/(см²·ср)",
-  },
-  hAxis: {
-    it: "Data",
-    en: "Date",
-    ru: "Дата",
-  },
-  trend: {
-    it: "Trend",
-    en: "Trend",
-    ru: "Тренд",
-  },
-  series: {
-    it: "Radianza",
-    en: "Radiance",
-    ru: "Энерг. яркость",
-  },
+t.about.closeButton = {it: "Chiudi", en: "Close", ru: "Закрыть"};
+t.about.openButton = {
+  it: "Innovation Lab Vicenza",
+  en: "About",
+  ru: "О проекте"
+};
+t.about.title = {
+  it: "Più informazioni",
+  en: "More info",
+  ru: "Больше информации",
+};
+t.about.data = {
+  it: "• Dati satellitari: VIIRS Stray Light Corrected Nighttime Day/Night \
+  Band Composites Version 1",
+  en: "• Satellite Data: VIIRS Stray Light Corrected Nighttime Day/Night Band \
+  Composites Version 1",
+  ru: "• Спутниковые данные: VIIRS Stray Light Corrected Nighttime Day/Night \
+  Band Composites Version 1"
+};
+t.about.refs = {
+  it: "• Codice sorgente e documentazione: GitHub dell'Innovation Lab Vicenza",
+  en: "• Source code and documentation: GitHub of the Innovation Lab Vicenza",
+  ru: "• Исходный код и документация: страница Innovation Lab Vicenza на GitHub"
 };
 
-t.chartNote = {
-  title: {
-    it: "Note sull'interpretazione del grafico",
-    en: "Chart Interpretation Notes",
-    ru: "Пояснения по интерпретации графика",
-  },
-  section: {
-    1: {
-      it: "Vicenza (VI): valore di ca. 50 nW/(cm²·sr)",
-      en: "Vicenza (VI): valore di ca. 50 nW/(cm²·sr)",
-      ru: "Виченца (пров. Виченца): значения ок. 50 нВт/(см²·ср)",
-    },
-    2: {
-      it: "Malo (VI): valore di ca. 20 nW/(cm²·sr)",
-      en: "Malo (VI): valore di ca. 20 nW/(cm²·sr)",
-      ru: "Мало (пров. Виченца): значения ок. 20 нВт/(см²·ср)",
-    },
-    3: {
-      it: "Sasso (VI): valore di ca. 5 nW/(cm²·sr)",
-      en: "Sasso (VI): valore di ca. 5 nW/(cm²·sr)",
-      ru: "Сассо (пров. Виченца): значения ок. 5 нВт/(см²·ср)",
-    }
-  },
-  body: {
-    1: {
-      it: "Inquinamento luminoso molto alto. L'intero sfondo del cielo ha una \
-      vaga tonalità bianca grigiastra. Forti sorgenti luminose sono evidenti \
-      in tutte le direzioni. La Via Lattea è totalmente invisibile o quasi.",
-      en: "The entire sky background has a vague, grayish white hue. Strong \
-      light sources are evident in all directions. The Milky Way is totally \
-      invisible or nearly so.",
-      ru: "Весь фон неба имеет расплывчатый, серовато-белый оттенок. Сильные \
-      источники света очевидны во всех направлениях. Млечный Путь полностью \
-      невидим или почти таков.",
-    },
-    2: {
-      it: "Inquinamento luminoso abbastanza alto. La Via Lattea è molto debole \
-      o invisibile vicino all'orizzonte e sembra piuttosto sbiadita sopra \
-      la testa. Le sorgenti luminose sono evidenti nella maggior parte se non \
-      in tutte le direzioni.",
-      en: "Fairly high light pollution. The Milky Way is very weak or \
-      invisible near the horizon and looks rather washed out overhead. \
-      Light sources are evident in most if not all directions.",
-      ru: "Довольно высокое световое загрязнение. Млечный Путь очень тусклый \
-      или невидим вблизи горизонта и выглядит довольно размытым над головой. \
-      Источники света очевидны в большинстве, если не во всех направлениях.",
-    },
-    3: {
-      it:  "Inquinamento luminoso moderato. Sono visibili solo strutture della \
-      Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza \
-      buono per gli standard di molte persone.",
-      en: "Moderate light pollution. Only large structures of the Milky Way \
-      are visible. Such a sky, fairly good by many people's standards.",
-      ru: "Умеренное световое загрязнение. Видны только крупные структуры \
-      Млечного Пути. Такое ночное небо будет удовлетворять ожиданиям \
-      многих людей.",
-    }
-  }
-};
+/* Console Printing ***********************************************************/
 
-// map
-t.layers = {
-  point: {
-    it: "Punto interrogato",
-    en: "Clicked Point",
-    ru: "Выбранная точка",
-  },
-  vector: {
-    it: "Limiti amministrativi",
-    en: "Administrative Limits",
-    ru: "Административные границы",
-  },
-  raster: {
-    it: "Luci notturne (media)",
-    en: "Averaged Night Lights",
-    ru: "Усредн. ночная светимость",
-  },
-  map: {
-    it: "Mappa scura",
-    en: "Dark map",
-    ru: "Тёмная карта",
-  },
-};
-
-// interface elements
-t.provinceSelector = {
-  it: "Scegli una provincia",
-  en: "Select a province",
-  ru: "Выберите провинцию",
-};
-
-t.dateSlider = {
-  start: {
-    it: "Inizio: ",
-    en: "Start: ",
-    ru: "Начало: ",
-  },
-  end: {
-    it: "Fine: ",
-    en: "End: ",
-    ru: "Конец: ",
-  },
-};
-
-// about button
-t.about = {
-  close: {
-    it: "Chiudi",
-    en: "Close",
-    ru: "Закрыть",
-  },
-  open: {
-    it: "Innovation Lab Vicenza",
-    en: "About",
-    ru: "О проекте",
-  },
-};
-
-t.ref = {
-  title: {
-    it: "Più informazioni",
-    en: "More info",
-    ru: "Больше информации",
-  },
-  data: {
-    it: "• Dati satellitari: VIIRS Stray Light Corrected Nighttime Day/Night Band Composites Version 1",
-    en: "• Satellite Data: VIIRS Stray Light Corrected Nighttime Day/Night Band Composites Version 1",
-    ru: "• Спутниковые данные: VIIRS Stray Light Corrected Nighttime Day/Night Band Composites Version 1",
-  },
-  docs: {
-    it: "• Codice sorgente e documentazione: GitHub dell'Innovation Lab Vicenza",
-    en: "• Source code and documentation: GitHub of the Innovation Lab Vicenza",
-    ru: "• Исходный код и документация: страница Innovation Lab Vicenza на GitHub",
-  },
-};
-
-t.totalImages = {
+t.console = {};
+t.console.totalImages = {
   "it": "Immagini in collezione VIIRS:",
   "en": "Images in the VIIRS collection:",
   "ru": "Изображений в коллекции VIIRS:",
 };
+
 /*******************************************************************************
  * Components *
  ******************************************************************************/
 
-// define a JSON object for storing UI components
+// Define a JSON object for storing UI components
 var c = {};
 
-c.basemap = {
-  mapTypeId: t.layers.map[ln],
-  styles: {},
-  types: [t.layers.map[ln]]
-};
-c.mainTitle = ui.Label(t.mainTitle[ln]);
+c.title = ui.Label(t.title[ln]);
 c.intro = ui.Label(t.intro[ln]);
-c.chartNote = {
-  title: ui.Label(t.chartNote.title[ln]),
-  section: {
-    1: ui.Label(t.chartNote.section[1][ln]),
-    2: ui.Label(t.chartNote.section[2][ln]),
-    3: ui.Label(t.chartNote.section[3][ln]),
-  },
-  body: {
-    1: ui.Label(t.chartNote.body[1][ln]),
-    2: ui.Label(t.chartNote.body[2][ln]),
-    3: ui.Label(t.chartNote.body[3][ln]),
-  }
-};
-c.funding = ui.Label(t.funding[ln]);
-c.provinceLabel = ui.Label(t.provinceSelector[ln]);
-c.startDateLabel = ui.Label(t.dateSlider.start[ln]);
-c.endDateLabel = ui.Label(t.dateSlider.end[ln]);
-c.chartPlaceholder = ui.Label(t.chart.placeholder[ln]);
-c.ref = {
-  title: ui.Label(t.ref.title[ln]),
-  dataSource: ui.Label({
-    value: t.ref.data[ln],
-    targetUrl: "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG"
-  }),
-  gitHub: ui.Label({
-    value: t.ref.docs[ln],
-    targetUrl: "https://github.com/VicenzaInnovationLab/ee-inquinamento-luminoso"
-  })
-};
 
-c.legendTitle = ui.Label(t.chart.vAxis[ln]);
-c.legendMin = ui.Label(m.viirs.vis.min);
-c.legendMid = ui.Label(m.viirs.vis.max / 2),
-c.legendMax = ui.Label(m.viirs.vis.max);
+/* Province Selector **********************************************************/
 
-c.projectLogo = ui.Thumbnail({
-  image: ee.Image("users/VicenzaInnovationLab/logo-progetto"),
-  params: {min: 0, max: 255}
-});
-
-/*******************************************************************************
- * Composition *
- ******************************************************************************/
-
-var aoi, filteredColl, maskedColl, composite;
-
-var aois = m.borders.source
-            .aggregate_array(m.borders.filtFieldName).sort().getInfo();
-
-/* Province selector */
-
-var provinceSelector = ui.Select({
-  items: aois,
+c.selectProvince = {};
+c.selectProvince.label = ui.Label(t.provinceSelectorLabel[ln]);
+c.selectProvince.selector = ui.Select({
+  items:  m.provinces.list,
   placeholder: t.chart.placeholder[ln],
-  value: m.borders.filtFieldVal,
   onChange: aoiNameHandler
 });
 
-var provincePanel = ui.Panel({
-  widgets: [c.provinceLabel, provinceSelector],
+c.selectProvince.panel = ui.Panel({
+  widgets: [c.selectProvince.label, c.selectProvince.selector],
   layout: ui.Panel.Layout.flow("horizontal")
 });
 
-/* Date selectors */
+/* Timeline *******************************************************************/
 
-var startDateSelector = ui.DateSlider({
+c.timeline = {};
+
+// Start
+c.timeline.start = {};
+c.timeline.start.label = ui.Label(t.timeline.start[ln]);
+
+c.timeline.start.selector = ui.DateSlider({
   start: m.date.start,
-  value: m.date.start,
   period: 1,
   onChange: startDateHandler
 });
+c.timeline.start.panel = ui.Panel({
+  widgets: [c.timeline.start.label, c.timeline.start.selector],
+  layout: ui.Panel.Layout.flow("horizontal")
+});
 
-var endDateSelector = ui.DateSlider({
+// End
+c.timeline.end = {};
+c.timeline.end.label = ui.Label(t.timeline.end[ln]);
+c.timeline.end.selector = ui.DateSlider({
   start: m.date.start,
-  value: m.date.end,
   period: 1,
   onChange: endDateHandler
 });
-
-
-var startDatePanel = ui.Panel({
-  widgets: [c.startDateLabel, startDateSelector],
+c.timeline.end.panel = ui.Panel({
+  widgets: [c.timeline.end.label, c.timeline.end.selector],
   layout: ui.Panel.Layout.flow("horizontal")
 });
 
-var endDatePanel = ui.Panel({
-  widgets: [c.endDateLabel, endDateSelector],
-  layout: ui.Panel.Layout.flow("horizontal")
+c.timeline.panel = ui.Panel({
+  widgets: [c.timeline.start.panel, c.timeline.end.panel],
 });
 
-var datePanel = ui.Panel({
-  widgets: [startDatePanel, endDatePanel],
-});
+/* Chart **********************************************************************/
 
-var chartPanel = ui.Panel();
+c.chart = {};
+c.chart.placeholder = ui.Label(t.chart.placeholder[ln]);
+c.chart.panel = ui.Panel();
 
-var mainPanel = ui.Panel([
-    c.mainTitle,
-    c.intro,
-    makePanelBreak(),
-    provincePanel,
-    datePanel,
-    makePanelBreak(),
-    chartPanel,
-    makePanelBreak(),
-    c.chartNote.title,
-    c.chartNote.section[1], c.chartNote.body[1],
-    c.chartNote.section[2], c.chartNote.body[2],
-    c.chartNote.section[3], c.chartNote.body[3],
-]);
+/* Chart Notes ****************************************************************/
 
-/* Legend */
+c.chartNote = {};
+c.chartNote.title = ui.Label(t.chartNote.title[ln]);
 
-// legend color bar
-var colorBar = ui.Thumbnail({
+c.chartNote.section = {};
+c.chartNote.section[1] = ui.Label(t.chartNote.section[1][ln]);
+c.chartNote.section[2] = ui.Label(t.chartNote.section[2][ln]);
+c.chartNote.section[3] = ui.Label(t.chartNote.section[3][ln]);
+
+c.chartNote.body = {};
+c.chartNote.body[1] = ui.Label(t.chartNote.body[1][ln]);
+c.chartNote.body[2] = ui.Label(t.chartNote.body[2][ln]);
+c.chartNote.body[3] = ui.Label(t.chartNote.body[3][ln]);
+
+/* Legend *********************************************************************/
+
+c.legend = {};
+c.legend.title = ui.Label(t.chart.vAxis[ln]);
+c.legend.bar = {};
+c.legend.bar.colors = ui.Thumbnail({
   image: ee.Image.pixelLonLat().select(0),
   params: {
     min: 0,
@@ -413,133 +347,211 @@ var colorBar = ui.Thumbnail({
   }
 });
 
-// create a panel with three numbers for the legend
-var legendLabels = ui.Panel({
-  widgets: [c.legendMin, c.legendMid, c.legendMax],
+c.legend.bar.min = ui.Label(m.viirs.vis.min);
+c.legend.bar.mid = ui.Label(m.viirs.vis.max / 2),
+c.legend.bar.max = ui.Label(m.viirs.vis.max);
+
+c.legend.bar.labels = ui.Panel({
+  widgets: [c.legend.bar.min, c.legend.bar.mid, c.legend.bar.max],
   layout: ui.Panel.Layout.flow("horizontal")
 });
 
-var legendPanel = ui.Panel([c.legendTitle, colorBar, legendLabels], null, {});
-
-/* Project info panel */
-
-var aboutInfoCloseButton = ui.Button({
-  label: t.about.close[ln],
-  onClick: function() {
-    aboutInfoOpenButton.style().set("shown", true);
-    aboutPanel.style().set("shown", false);
-  }
-});
-
-var aboutInfoOpenButton = ui.Button({
-  label: t.about.open[ln],
-  onClick: function() {
-    aboutInfoOpenButton.style().set("shown", false);
-    aboutPanel.style().set("shown", true);
-  }
-});
-
-var aboutPanel = ui.Panel([
-    c.projectLogo,
-    c.funding,
-    c.ref.title,
-    c.ref.dataSource,
-    c.ref.gitHub,
-    aboutInfoCloseButton]
+c.legend.panel = ui.Panel(
+  [c.legend.title, c.legend.bar.colors, c.legend.bar.labels], null, {}
 );
 
-/* Project info panel */
+/* About Panel ****************************************************************/
 
-Map.add(aboutInfoOpenButton);
-ui.root.insert(0, aboutPanel);
+c.about = {};
 
-ui.root.insert(2, mainPanel);
-Map.add(legendPanel);
+c.about.title = ui.Label(t.about.title[ln]);
+c.about.logo = ui.Thumbnail({
+  image: ee.Image("users/VicenzaInnovationLab/logo-progetto"),
+  params: {min: 0, max: 255}
+});
+c.about.funding = ui.Label(t.about.funding[ln]);
+
+c.about.dataSource = ui.Label({
+  value: t.about.data[ln],
+  targetUrl: "https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG"
+});
+c.about.gitHub = ui.Label({
+  value: t.about.refs[ln],
+  targetUrl: "https://github.com/VicenzaInnovationLab/ee-inquinamento-luminoso"
+});
+
+c.about.closeButton = ui.Button({
+  label: t.about.closeButton[ln],
+  onClick: function() {
+    c.about.openButton.style().set("shown", true);
+    c.about.panel.style().set("shown", false);
+  }
+});
+c.about.openButton = ui.Button({
+  label: t.about.openButton[ln],
+  onClick: function() {
+    c.about.openButton.style().set("shown", false);
+    c.about.panel.style().set("shown", true);
+  }
+});
+
+c.about.panel = ui.Panel([
+  c.about.logo,
+  c.about.funding,
+  c.about.title,
+  c.about.dataSource,
+  c.about.gitHub,
+  c.about.closeButton]
+);
+
+/* Control Panel  *************************************************************/
+
+c.controlPanel = ui.Panel([
+  c.title,
+  c.intro,
+  makePanelBreak(),
+  c.selectProvince.panel,
+  c.timeline.panel,
+  makePanelBreak(),
+  c.chart.panel,
+  makePanelBreak(),
+  c.chartNote.title,
+  c.chartNote.section[1], c.chartNote.body[1],
+  c.chartNote.section[2], c.chartNote.body[2],
+  c.chartNote.section[3], c.chartNote.body[3],
+]);
+
+/* Custom Base Map ************************************************************/
+c.basemap = {
+  mapTypeId: t.layers.basemap[ln],
+  styles: {},
+  types: [t.layers.basemap[ln]]
+};
+
+/*******************************************************************************
+ * Composition *
+ ******************************************************************************/
+
+ui.root.insert(0, c.about.panel);
+ui.root.insert(2, c.controlPanel);
+
+Map.add(c.about.openButton);
+Map.add(c.legend.panel);
+
 Map.onClick(mapClickHandler);
-
-chartPanel.widgets().set(0, c.chartPlaceholder);
-updateMap();
-Map.centerObject(aoi);
 
 /*******************************************************************************
  * Styling *
  ******************************************************************************/
 
-// define a JSON object for defining CSS-like class style properties
+// Define a JSON object for defining CSS-like class style properties
 var s = {};
 
-/* Style definitions*/
-s.colors = {
-  brand: {
-    grigio0: "#e4e4e4",  // backgrounds
-    grigio1: "#a0a3a6",
-    rosso0: "#f3a4a4",  // backgrounds
-    rosso1: "#ea4f4d",
-    rosso2: "#e52323",
-    rosso3: "#b71c1a",  // titles
-    blu: "#0d5a8c",  // subtitles
-  },
-  chart: {
-    mainCurve: "#eed3a2",
-    trend: "#e52323",
-    areaBackground: "#4e4e4e",
-    gridline: "#3b3b3b",
-  },
+/* Style Definitions **********************************************************/
+
+// Color palettes
+s.colors = {};
+s.colors.brand = {
+  grigio0: "#e4e4e4",  // backgrounds
+  grigio1: "#a0a3a6",
+  rosso0: "#f3a4a4",  // backgrounds
+  rosso1: "#ea4f4d",
+  rosso2: "#e52323",
+  rosso3: "#b71c1a",  // titles
+  blu: "#0d5a8c"  // subtitles
+};
+s.colors.chart = {
+  mainCurve: "#eed3a2",
+  trend: "#e52323",
+  areaBackground: "#4e4e4e",
+  gridline: "#3b3b3b"
 };
 
-s.mainTitle = {
+// Main text styles
+s.text = {};
+s.text.title = {
   fontSize: "26px",
   fontWeight: "bold",
   color: s.colors.brand.rosso3
 };
-s.justified = {textAlign: "justify", stretch: "horizontal"};
-s.leftAligned = {textAlign: "left", stretch: "horizontal"};
+s.text.justified = {textAlign: "justify", stretch: "horizontal"};
+s.text.leftAligned = {textAlign: "left", stretch: "horizontal"};
+s.text.chartNote = {};
+s.text.chartNote.title = {fontWeight: "bold", fontSize: "16px"};
+s.text.chartNote.section = {fontWeight: "bold"};
 
-s.dateSelector = {width: "72%"};
-s.dateLabel = {stretch: "both"};
+// Timeline
+s.timeline = {};
+s.timeline.selector = {width: "72%"};
+s.timeline.label = {stretch: "both"};
 
-s.chartNote = {
-  title: {fontWeight: "bold", fontSize: "16px"},
-  section: {fontWeight: "bold"}
+// Chart
+s.chart = {};
+s.chart.placeholder = {color: s.colors.brand.blu, fontSize: 14};
+s.chart.title = {
+  color: s.colors.brand.blu,
+  fontSize: 16,
+  bold: true,
+  italic: false
+};
+s.chart.axis = {
+  color: s.colors.brand.blu,
+  fontSize: 12,
+  bold: false,
+  italic: false
+};
+s.chart.default = {
+  color: s.colors.brand.blu,
+  fontSize: 11,
+  bold: false,
+  italic: false
 };
 
-s.chart = {
-  placeholder: {
-    color: s.colors.brand.blu,
-    fontSize: 14
-  },
-  title: {
-    color: s.colors.brand.blu,
-    fontSize: 16,
-    bold: true,
-    italic: false
-  },
-  axis: {
-    color: s.colors.brand.blu,
-    fontSize: 12,
-    bold: false,
-    italic: false
-  },
-  default: {
-    color: s.colors.brand.blu,
-    fontSize: 11,
-    bold: false,
-    italic: false
-  }
+s.chart.options = {};
+s.chart.options.title = t.chart.title[ln];
+s.chart.options.titleTextStyle = s.chart.title;
+s.chart.options.vAxis = {
+  title: t.chart.vAxis[ln],
+  textStyle: s.chart.default,
+  titleTextStyle: s.chart.axis,
+  gridlines: { color: s.colors.chart.gridline }
+};
+s.chart.options.hAxis = {
+  title: t.chart.hAxis[ln],
+  textStyle: s.chart.default,
+  titleTextStyle: s.chart.axis,
+  gridlines: { color: s.colors.chart.gridline },
+};
+s.chart.options.curveType = "function";
+s.chart.options.colors = [s.colors.chart.mainCurve];
+s.chart.options.legend = {textStyle: s.chart.axis};
+s.chart.options.chartArea = {backgroundColor: s.colors.chart.areaBackground};
+s.chart.options.trendlines = {};
+s.chart.options.trendlines[0] = {
+  title: t.chart.trend[ln],
+  type: "polynomial",
+  color: s.colors.chart.trend,
+  lineWidth: 3,
+  opacity: 0.9,
+  visibleInLegend: true
 };
 
-s.legendTitle = {fontWeight: "bold", fontSize: "12px"};
-s.legendMinMax = {margin: "4px 8px", fontSize: "12px"};
-s.legendMid = {
+// Legend panel
+s.legend = {};
+s.legend.title = {fontWeight: "bold", fontSize: "12px"};
+s.legend.minMax = {margin: "4px 8px", fontSize: "12px"};
+s.legend.mid = {
   margin: "4px 8px",
   textAlign: "center",
   stretch: "horizontal",
   fontSize: "12px"
 };
 
-s.aboutInfoButton = {position: "bottom-left", "shown": true};
+// About panel
+s.aboutButton = {position: "bottom-left", "shown": true};
 
-s.darkMap = [{
+// Base map
+s.darkBasemap = [{
   "elementType": "geometry",
   "stylers": [{
     "color": "#212121"
@@ -662,61 +674,70 @@ s.darkMap = [{
   }]
 }];
 
-/* Style settings */
-mainPanel.style().set({
+/* Style Settings *************************************************************/
+
+c.controlPanel.style().set({
   width: "25%",
   border: "1px solid black",
   padding: "10px"
 });
-c.mainTitle.style().set(s.mainTitle);
-c.intro.style().set(s.justified);
+c.title.style().set(s.text.title);
+c.intro.style().set(s.text.justified);
 
-c.provinceLabel.style().set({stretch: "vertical"});
-provinceSelector.style().set({stretch: "horizontal"});
+// Province selector
+c.selectProvince.label.style().set({stretch: "vertical"});
+c.selectProvince.selector.style().set({stretch: "horizontal"});
 
-c.startDateLabel.style().set(s.dateLabel);
-c.endDateLabel.style().set(s.dateLabel);
-startDateSelector.style().set(s.dateSelector);
-endDateSelector.style().set(s.dateSelector);
+// Timeline
+c.timeline.start.label.style().set(s.timeline.label);
+c.timeline.end.label.style().set(s.timeline.label);
+c.timeline.start.selector.style().set(s.timeline.selector);
+c.timeline.end.selector.style().set(s.timeline.selector);
 
-c.chartNote.title.style().set(s.chartNote.title);
+// Chart
+c.chart.placeholder.style().set(s.chart.placeholder);
 
-c.chartNote.section[1].style().set(s.chartNote.section)
+// Chart notes
+c.chartNote.title.style().set(s.text.chartNote.title);
+
+c.chartNote.section[1].style().set(s.text.chartNote.section)
                               .set({color: s.colors.brand.rosso2});
-c.chartNote.section[2].style().set(s.chartNote.section).set({color: "#ed5f00"});
-c.chartNote.section[3].style().set(s.chartNote.section).set({color: "green"});
+c.chartNote.section[2].style().set(s.text.chartNote.section).set({color: "#ed5f00"});
+c.chartNote.section[3].style().set(s.text.chartNote.section).set({color: "green"});
 
 c.chartNote.body[1].style().set({color: s.colors.brand.rosso2});
 c.chartNote.body[2].style().set({color: "#ed5f00"});
 c.chartNote.body[3].style().set({color: "green"});
 
-c.chartPlaceholder.style().set(s.chart.placeholder);
+// About
+c.about.panel.style().set({width: "400px", shown: false});
+c.about.openButton.style().set(s.aboutButton);
+c.about.closeButton.style().set(s.aboutButton);
 
-aboutPanel.style().set({width: "400px", shown: false});
-aboutInfoOpenButton.style().set(s.aboutInfoButton);
-aboutInfoCloseButton.style().set(s.aboutInfoButton);
+c.about.title.style().set({fontSize: "20px", fontWeight: "bold"});
+c.about.logo.style().set({width: "200px"});
+c.about.funding.style().set(s.text.leftAligned);
 
-c.ref.title.style().set({fontSize: "20px", fontWeight: "bold"});
-c.projectLogo.style().set({width: "200px"});
-c.funding.style().set(s.leftAligned);
-
-legendPanel.style().set({width: "25%"});
-colorBar.style().set({
+// Legend
+c.legend.panel.style().set({width: "25%"});
+c.legend.bar.colors.style().set({
   stretch: "horizontal",
   margin: "0px 8px",
   maxHeight: "20px"
 });
-c.legendTitle.style().set(s.legendTitle);
-c.legendMin.style().set(s.legendMinMax);
-c.legendMax.style().set(s.legendMinMax);
-c.legendMid.style().set(s.legendMid);
+c.legend.title.style().set(s.legend.title);
+c.legend.bar.min.style().set(s.legend.minMax);
+c.legend.bar.max.style().set(s.legend.minMax);
+c.legend.bar.mid.style().set(s.legend.mid);
 
-c.basemap.styles[t.layers.map[ln]] = s.darkMap;
-Map.setOptions(c.basemap);
+// Basemap
+c.basemap.styles[t.layers.basemap[ln]] = s.darkBasemap;
 
 /*******************************************************************************
  * Behaviors *
  ******************************************************************************/
+
+var aoi, filteredColl, maskedColl, composite;
 
 function applyFilters(target_collection) {
   return target_collection
@@ -725,12 +746,12 @@ function applyFilters(target_collection) {
 }
 
 function maskClouds(img) {
-  var mask = img.select(m.viirs.cloudBand).gte(m.cloudThreshold);
+  var mask = img.select(m.viirs.bands.cloud).gte(m.viirs.cloudThreshold);
   return img.updateMask(mask);
 }
 
 function makeComposite(target_collection) {
-  return target_collection.select(m.viirs.dataBand).mean().clip(aoi);
+  return target_collection.select(m.viirs.bands.data).mean().clip(aoi);
 }
 
 function makePanelBreak() {
@@ -746,11 +767,10 @@ function makePanelBreak() {
 }
 
 function aoiNameHandler(selectedName) {
-  m.borders.filtFieldVal = selectedName;
-  print(m.borders.filtFieldVal);
+  m.provinces.filtFieldVal = selectedName;
   updateMap();
-  Map.centerObject(aoi);
-  chartPanel.widgets().set(0, c.chartPlaceholder);
+  Map.centerObject(aoi, m.provinces.zoom);
+  c.chart.panel.widgets().set(0, c.chart.placeholder);
 }
 
 function startDateHandler(dateRange) {
@@ -764,20 +784,20 @@ function endDateHandler(dateRange) {
 }
 
 function cloudThreshHandler(value) {
-  m.cloudThreshold = value;
+  m.viirs.cloudThreshold = value;
   updateMap();
 }
 
 function updateMap() {
-  aoi = m.borders.source.filter(ee.Filter.eq(m.borders.filtFieldName, m.borders.filtFieldVal));
+  aoi = m.provinces.source.filter(ee.Filter.eq(m.provinces.filtFieldName, m.provinces.filtFieldVal));
   filteredColl = applyFilters(m.viirs.source);
   maskedColl = filteredColl.map(maskClouds);
-  print(t.totalImages[ln], maskedColl.size());
   composite = makeComposite(maskedColl);
   var compositeLayer = ui.Map.Layer(composite, m.viirs.vis, t.layers.raster[ln]);
-  var borderLayer = ui.Map.Layer(aoi.style(m.borders.vis), {}, t.layers.vector[ln]);
+  var borderLayer = ui.Map.Layer(aoi.style(m.provinces.vis), {}, t.layers.vector[ln]);
   Map.layers().set(0, compositeLayer);
   Map.layers().set(1, borderLayer);
+  // print(m.provinces.filtFieldVal, t.console.totalImages[ln], maskedColl.size());
 }
 
 function mapClickHandler(coords) {
@@ -790,42 +810,24 @@ function mapClickHandler(coords) {
   Map.layers().set(2, clickedPointLayer);
 
   var chart = ui.Chart.image.series({
-    imageCollection: maskedColl.select(m.viirs.dataBand),
+    imageCollection: maskedColl.select(m.viirs.bands.data),
     region: clickedPoint,
     reducer: ee.Reducer.mean(),
     scale: 500,
   })
     .setSeriesNames([t.chart.series[ln]])
-    .setOptions({
-      title: t.chart.title[ln],
-      titleTextStyle: s.chart.title,
-      vAxis: {
-        title: t.chart.vAxis[ln],
-        textStyle: s.chart.default,
-        titleTextStyle: s.chart.axis,
-        gridlines: { color: s.colors.chart.gridline }
-      },
-      hAxis: {
-        title: t.chart.hAxis[ln],
-        textStyle: s.chart.default,
-        titleTextStyle: s.chart.axis,
-        gridlines: { color: s.colors.chart.gridline },
-      },
-      curveType: "function",
-      colors: [s.colors.chart.mainCurve],
-      legend: { textStyle: s.chart.axis },
-      chartArea: { backgroundColor: s.colors.chart.areaBackground },
-      trendlines: {
-        0: {
-          title: t.chart.trend[ln],
-          type: "polynomial",
-          color: s.colors.chart.trend,
-          lineWidth: 3,
-          opacity: 0.9,
-          visibleInLegend: true,
-        }
-      }
-    });
-
-  chartPanel.widgets().set(0, chart);
+    .setOptions(s.chart.options);
+  c.chart.panel.widgets().set(0, chart);
 }
+
+/*******************************************************************************
+ * Initialize *
+ ******************************************************************************/
+
+c.timeline.start.selector.setValue(m.date.start);
+c.timeline.end.selector.setValue(m.date.end);
+c.selectProvince.selector.setValue(m.provinces.filtFieldVal);
+
+// Render the map
+Map.setOptions(c.basemap);
+updateMap();
