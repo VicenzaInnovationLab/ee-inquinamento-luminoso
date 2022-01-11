@@ -152,7 +152,7 @@ t.chartNote.body[2] = {
 };
 t.chartNote.body[3] = {
   it:  "Inquinamento luminoso moderato. Sono visibili solo strutture della \
-  Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza \
+  Via Lattea di grandi dimensioni. Tuttavia, questo tipo di cielo è abbastanza \
   buono per gli standard di molte persone.",
   en: "Moderate light pollution. Only large structures of the Milky Way \
   are visible. Such a sky, fairly good by many people's standards.",
