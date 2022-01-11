@@ -3,7 +3,7 @@
 <p align="right">a cura del <a href="https://digitalinnovationhubvicenza.it/">Digital Innovation Hub Vicenza</a></p>
 
 <p align="justify">
-Esplora la dinamica dell'inquinamento luminoso nel vicentino usando la nostra web app basata su Google Earth Engine, una piattaforma big data, e immagini satellitari NASA.
+Esplora la dinamica dell'inquinamento luminoso nel vicentino usando la nostra web app basata su Google Earth Engine, una piattaforma Big Data, e immagini satellitari NASA.
 </p>
 
 [<p align="center"><img src="img/webapp-button-blue.png" alt="open web app button" width="200"></p>](https://vicenzainnovationlab.users.earthengine.app/view/inquinamento-luminoso)
@@ -41,7 +41,7 @@ Questo repository contiene il codice JavaScript che abbiamo utilizzato per l'ela
 
 3. Per impostazione predefinita, l'intervallo di date è impostato dal 1° gennaio 2014 fino a oggi. Puoi cambiarlo. Tuttavia, la data di inizio non può essere precedente al 01/01/2014 a causa della mancanza di dati.
 
-4. Ora la cosa più interessante: ingrandisci la mappa nell'area di tuo interesse e fai un clic sinistro. Nel pannello a destra, apparirà un grafico con una curva gialla, che mostra la dinamica dell'inquinamento luminoso a questo punto per il periodo selezionato. Il grafico mostra anche una trend line rossa (o meglio, una curva di tendenza polinomiale).
+4. Ora la cosa più interessante: ingrandisci la mappa nell'area di tuo interesse e fai un clic. Nel pannello a destra, apparirà un grafico con una curva gialla, che, a questo punto, mostra la dinamica dell'inquinamento luminoso per il periodo selezionato. Il grafico mostra anche una trend line rossa (o meglio, una curva di tendenza polinomiale).
 
 5. In alto a destra del grafico c'è un pulsante che consente di espanderlo in una finestra separata. In quella nuova finestra sarà possibile scaricare i dati iniziali del grafico nel formato CSV.
 
@@ -50,22 +50,22 @@ Questo repository contiene il codice JavaScript che abbiamo utilizzato per l'ela
 Ecco un riferimento:
 - **Vicenza (VI), 50 nW/(cm²·sr)**. Inquinamento luminoso molto alto. L'intero sfondo del cielo ha una vaga tonalità bianca grigiastra. Forti sorgenti luminose sono evidenti in tutte le direzioni. La Via Lattea è totalmente invisibile o quasi.
 - **Malo (VI), 20 nW/(cm²·sr)**. Inquinamento luminoso abbastanza alto. La Via Lattea è molto debole o invisibile vicino all'orizzonte e sembra piuttosto sbiadita sopra la testa. Le sorgenti luminose sono evidenti nella maggior parte se non in tutte le direzioni.
-- **Sasso (VI), 5 nW/(cm²·sr)**. Inquinamento luminoso moderato. Sono visibili solo strutture della Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza buono per gli standard di molte persone.
+- **Sasso (VI), 5 nW/(cm²·sr)**. Inquinamento luminoso moderato. Sono visibili solo strutture della Via Lattea di grandi dimensioni. Tuttavia, questo tipo di cielo è abbastanza buono per gli standard di molte persone.
 
 ## Codice sorgente
 
 ### Struttura del repository
 
-- `img/` - cartella con le immagini usate in questo readme
+- `img/` - cartella con le immagini usate in questo Readme
 - `code.js` - codice della web app per Earth Engine
 - `LICENSE.md` - file della licenza
 - `README.md` - questo file
 
 ### Come usare il codice
 
-Il codice è stato sviluppato per essere eseguito all'interno della  piattaforma big data che si chiama [Google Earth Engine](https://earthengine.google.com/). In caso se vuoi esaminare gli algoritmi sottostanti o produrre una web app derivata è necessario avere un account gratuito Earth Engine. Se vuoi invece solo utilizzare la web app, basta [aprire il link](https://vicenzainnovationlab.users.earthengine.app/view/monitoraggio-aria).
+Il codice è stato sviluppato per essere eseguito all'interno della  piattaforma Big Data che si chiama [Google Earth Engine](https://earthengine.google.com/). In caso se vuoi esaminare gli algoritmi sottostanti o produrre una web app derivata è necessario avere un account gratuito Earth Engine. Se vuoi invece solo utilizzare la web app, basta [aprire il link](https://vicenzainnovationlab.users.earthengine.app/view/monitoraggio-aria).
 
-Non appena hai l'account Earth Engine, esplora la sua interfaccia con [questo manuale](https://developers.google.com/earth-engine/guides/playground). Poi basta copiare il codice dal file `code.js` da questo repository a uno script Earth Engine per esiguirlo.
+Non appena hai l'account Earth Engine, esplora la sua interfaccia con [questo manuale](https://developers.google.com/earth-engine/guides/playground). Poi basta copiare il codice dal file `code.js` da questo repository a uno script Earth Engine per eseguirlo.
 
 ## Licenza
 
