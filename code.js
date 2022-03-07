@@ -841,6 +841,9 @@ c.selectProvince.selector.setValue(m.provinces.filtFieldVal);
 // Render the map
 Map.setOptions(c.basemap);
 updateMap();
+<<<<<<< HEAD
 
 // Responsible app interface
 ui.root.onResize(responsiveApp);
+=======
+>>>>>>> b8b571bb88954a7c7fad8acd84ae9cd20106ead5
