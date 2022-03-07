@@ -39,11 +39,7 @@ Questo repository contiene il codice JavaScript che abbiamo utilizzato per l'ela
 
 2. Dall'elenco a tendina è possibile selezionare un'altra provincia del Veneto.
 
-<<<<<<< HEAD
 3. Per impostazione predefinita, l'intervallo di date è impostato dal 1° gennaio 2014 infino a oggi.
-=======
-3. Per impostazione predefinita, l'intervallo di date è impostato dal 1° gennaio 2014 fino a oggi. Puoi cambiarlo. Tuttavia, la data di inizio non può essere precedente al 01/01/2014 a causa della mancanza di dati.
->>>>>>> b8b571bb88954a7c7fad8acd84ae9cd20106ead5
 
 4. Ora la cosa più interessante: ingrandisci la mappa nell'area di tuo interesse e fai un clic. Nel pannello a destra, apparirà un grafico con una curva gialla, che, a questo punto, mostra la dinamica dell'inquinamento luminoso per il periodo selezionato. Il grafico mostra anche una trend line rossa (o meglio, una curva di tendenza polinomiale).
 
