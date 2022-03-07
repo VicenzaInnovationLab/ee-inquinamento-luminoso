@@ -67,15 +67,15 @@ t.title = {
 };
 
 t.intro = {
-  it: "Seleziona una provincia e un periodo per osservare l'intensità delle \
-  luci notturne. Per vedere una dinamica in un punto specifico clicca sulla \
+  it: "Seleziona una provincia per osservare l'intensità delle \
+  luci notturne dal 2014. Per vedere una dinamica in un punto specifico clicca sulla \
   mappa e aspetta un po' - i calcoli che creano il grafico vengono eseguiti \
   nel tempo reale.",
-  en: "Select the province and time period to observe the intensity of the \
-  night lights. Click on the map to see a dynamic at a specific point and wait \
+  en: "Select the provinceto observe the intensity of the night lights from 2014. \
+  Click on the map to see a dynamic at a specific point and wait \
   a while - the calculations that create the chart are done in real time.",
-  ru: "Выберите провинцию и период времени, чтобы увидеть интенсивность ночных \
-  огней. Для изучения динамики в определенной точке надо кликнуть на карту и \
+  ru: "Выберите провинцию, чтобы увидеть интенсивность ночных огней \
+  c 2014 года. Для изучения динамики в определенной точке надо кликнуть на карту и \
   немного подождать - вычисления, которые создают график, выполняются в режиме \
   реального времени.",
 };
@@ -152,7 +152,7 @@ t.chartNote.body[2] = {
 };
 t.chartNote.body[3] = {
   it:  "Inquinamento luminoso moderato. Sono visibili solo strutture della \
-  Via Lattea di grandi dimensioni. Tuttavia, un tale cielo è abbastanza \
+  Via Lattea di grandi dimensioni. Tuttavia, questo tipo di cielo è abbastanza \
   buono per gli standard di molte persone.",
   en: "Moderate light pollution. Only large structures of the Milky Way \
   are visible. Such a sky, fairly good by many people's standards.",
@@ -411,7 +411,7 @@ c.controlPanel = ui.Panel([
   c.intro,
   makePanelBreak(),
   c.selectProvince.panel,
-  c.timeline.panel,
+  // c.timeline.panel,
   makePanelBreak(),
   c.chart.panel,
   makePanelBreak(),
@@ -677,7 +677,7 @@ s.darkBasemap = [{
 /* Style Settings *************************************************************/
 
 c.controlPanel.style().set({
-  width: "25%",
+  width: "50%",
   border: "1px solid black",
   padding: "10px"
 });
@@ -700,14 +700,9 @@ c.chart.placeholder.style().set(s.chart.placeholder);
 // Chart notes
 c.chartNote.title.style().set(s.text.chartNote.title);
 
-c.chartNote.section[1].style().set(s.text.chartNote.section)
-                              .set({color: s.colors.brand.rosso2});
-c.chartNote.section[2].style().set(s.text.chartNote.section).set({color: "#ed5f00"});
-c.chartNote.section[3].style().set(s.text.chartNote.section).set({color: "green"});
-
-c.chartNote.body[1].style().set({color: s.colors.brand.rosso2});
-c.chartNote.body[2].style().set({color: "#ed5f00"});
-c.chartNote.body[3].style().set({color: "green"});
+c.chartNote.section[1].style().set(s.text.chartNote.section);
+c.chartNote.section[2].style().set(s.text.chartNote.section);
+c.chartNote.section[3].style().set(s.text.chartNote.section);
 
 // About
 c.about.panel.style().set({width: "400px", shown: false});
@@ -797,7 +792,6 @@ function updateMap() {
   var borderLayer = ui.Map.Layer(aoi.style(m.provinces.vis), {}, t.layers.vector[ln]);
   Map.layers().set(0, compositeLayer);
   Map.layers().set(1, borderLayer);
-  // print(m.provinces.filtFieldVal, t.console.totalImages[ln], maskedColl.size());
 }
 
 function mapClickHandler(coords) {
@@ -820,14 +814,33 @@ function mapClickHandler(coords) {
   c.chart.panel.widgets().set(0, chart);
 }
 
+function responsiveApp(screen){
+  print("Value of screen.is_desktop: ", screen.is_desktop);
+  if (screen.is_desktop) {
+      print("I'm DESKTOP");  // true case
+  } else {
+      print("I'm nything but desktop");  // false case
+  }
+  if (screen.is_desktop) {
+      c.controlPanel.style().set({width: "25%"});  // true case
+  } else {
+      c.controlPanel.style().set({width: "50%"});  // false case
+  }
+}
+// "is_mobile", "is_tablet", "is_desktop", "is_portrait"
+// and "is_landscape", and numeric fields "width" and "height"
+
 /*******************************************************************************
  * Initialize *
  ******************************************************************************/
 
-c.timeline.start.selector.setValue(m.date.start);
-c.timeline.end.selector.setValue(m.date.end);
+// c.timeline.start.selector.setValue(m.date.start);
+// c.timeline.end.selector.setValue(m.date.end);
 c.selectProvince.selector.setValue(m.provinces.filtFieldVal);
 
 // Render the map
 Map.setOptions(c.basemap);
 updateMap();
+
+// Responsible app interface
+ui.root.onResize(responsiveApp);
