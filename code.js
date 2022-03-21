@@ -5,7 +5,7 @@
  *  - use double quotes by default
  *  - use double space after your code and before // in inline comments
  ******************************************************************************/
-var appVersion = "2022.3.18";
+var appVersion = "2022.3.21";
 
 /*******************************************************************************
  * Model *
@@ -842,6 +842,15 @@ c.selectProvince.selector.setValue(m.provinces.filtFieldVal);
 
 // Render the map
 Map.setOptions(c.basemap);
+Map.setControlVisibility({
+  all: false,
+  layerList: false,
+  zoomControl: true,
+  scaleControl: true,
+  mapTypeControl: false,
+  fullscreenControl: false,
+  drawingToolsControl: false
+});
 updateMap();
 
 // Responsible app interface
